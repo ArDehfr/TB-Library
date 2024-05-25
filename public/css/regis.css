@@ -1,0 +1,35 @@
+body {
+    background-color: #001524;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'poppins';
+}
+.signup{
+    display: flex;
+    align-items: center;
+    align-items: center;
+    background-color: white;
+    width: 85%;
+    height: 630px;
+    margin-top: 17px;
+    border-radius: 20px;
+}
+.image{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #526D82;
+    width: 50%;
+    height: 100%;
+    border-radius: 20px 0px 0px 20px;
+}
+
+.signup-content{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    right: 50%;
+    transform: translateX(25%);
+}
+
