@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Side Navigation Bar</title>
-    <link rel="stylesheet" href="{{ asset('css/add-crew.css') }}">
+    {{-- <link rel="stylesheet" href="{{ asset('css/add-crew.css') }}"> --}}
+    <link rel="stylesheet" href="{{ asset('css/user.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
@@ -111,13 +112,13 @@
                         <th>Borrower</th>
                         <th>Day Rent</th>
                         <th>Day Return</th>
-                        <th>Returned At</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php $borrowings = App\Models\Borrowing::all() ?>
                     @foreach ($borrowings as $borrowing)
-                    <tr class="{{ $borrowing->status == 'returned' ? 'returned-row' : '' }}">
+                    <tr class="{{ $borrowing->status == 'returned' ? 'returned-row' : ($borrowing->status == 'rejected' ? 'rejected-row' : 'returned-row') }}">
                         <td>{{ $borrowing->book->book_name }}</td>
                         <td>{{ $borrowing->user->name }}</td>
                         <td>{{ $borrowing->day_rent }}</td>

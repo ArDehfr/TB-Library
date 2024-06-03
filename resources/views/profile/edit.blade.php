@@ -4,7 +4,7 @@
 
 <div style="background-color: #DDE6ED;" class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-        {{-- <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+        <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
             <form action="{{ route('profile.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="max-w-xl">
@@ -22,8 +22,8 @@
                     </div>
 
                     <!-- Display image preview -->
-                    <div class="mb-6" id="imagePreview" style="display: none;">
-                        <img src="" alt="Image Preview" class="max-w-xs mt-2">
+                    <div class="mb-6 rounded-md bg-gray-200 mr-2" id="imagePreview" style="width:200px; height:200px">
+                        <img src="" alt="Image Preview" class="mt-2 rounded-md object-cover" style="width:200px; height:200px">
                     </div>
 
                     <!-- JavaScript to display image preview -->
@@ -40,15 +40,15 @@
                         });
                     </script>
                 </div>
-                
+
                 <!-- Submit button -->
                 <div class="mt-8">
-                    <button type="submit" class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Save
+                    <button type="submit" class="py-1.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        SAVE
                     </button>
                 </div>
             </form>
-        </div> --}}
+        </div>
 
         <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
             <div class="max-w-xl">

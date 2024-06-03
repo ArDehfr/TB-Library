@@ -2,10 +2,9 @@
     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content card" style="color: #fff;">
-            <form id="editBookForm" action="{{ route('admin.book.update', $book->book_id) }}" method="POST"
-                enctype="multipart/form-data">
+            <form id="editBookForm" action="{{ route('admin.book.update', $book->book_id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                @method('PUT') <!-- Add this hidden field to spoof the PUT method -->
+                @method('PUT')
 
                 <div class="modal-header">
                     <h5 class="modal-title" id="editBookModalLabel">Edit Book</h5>

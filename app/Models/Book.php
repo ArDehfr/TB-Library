@@ -19,5 +19,6 @@ class Book extends Model
         'publisher',
         'year',
         'synopsis',
+        'rent_price',
     ];
 }

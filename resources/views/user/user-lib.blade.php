@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <script>
         function logout() {
             event.preventDefault();
@@ -26,6 +27,20 @@
                 }
             })
         }
+
+        function confirmContinue(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: 'Confirm Borrowing',
+                text: "Are you sure you want to borrow this book?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, continue!'
+            });
+        }
+
     </script>
 </head>
 <body>
@@ -59,11 +74,17 @@
             </div>
             <div class="dropdown">
                 <button class="dropbtn">
-                    {{-- @if (Auth::user()->picture)
-                       <img src="{{ asset(Auth::user()->picture) }}" alt="" class="w-8 h-8 rounded-full object-cover mr-2">
-                    @endif --}}
-                    {{ Auth::user()->name }}
-                    <i style="margin-left: 5px" class="fas fa-caret-down"></i>
+                    <div style="display: flex">
+                        @if (Auth::user()->picture)
+                            <img src="{{ asset(Auth::user()->picture) }}" alt="{{ Auth::user()->name }}" style="width: 2rem; height: 2rem; border-radius: 9999px; object-fit: cover; margin-right: 0.5rem;">
+                        @else
+                            <img src="{{ asset('assets/user.png') }}" alt="Default Profile Picture" style="width: 2rem; height: 2rem; border-radius: 9999px; object-fit: cover; margin-right: 0.5rem;">
+                        @endif
+                        <div style="margin-top: 3px; margin-left:5px;">
+                            {{ Auth::user()->name }}
+                            <i style="margin-left: 5px" class="fas fa-caret-down"></i>
+                        </div>
+                    </div>
                 </button>
                 <div class="dropdown-content">
                     <a href="{{ route('profile.edit') }}">Profile</a>
@@ -76,37 +97,146 @@
                 </div>
             </div>
         </div>
-        <div class="content1">
-            <h2>Borrow a Book</h2>
-            <form action="{{ route('borrow.book') }}" method="POST">
-                @csrf
-                <div>
-                    <label for="day_rent">Day Rent:</label>
-                    <input type="date" id="day_rent" name="day_rent" required>
-                </div>
-                <div>
-                    <label for="day_return">Day Return:</label>
-                    <input type="date" id="day_return" name="day_return" required>
-                </div>
-                <div>
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" value="{{ Auth::user()->email }}" readonly>
-                </div>
-                <div>
-                    <label for="book">Select Book:</label>
-                    <select id="book" name="book" required>
-                        <?php $books = App\Models\Book::all() ?>
-                        @foreach ($books as $book)
-                            <option value="{{ $book->book_id }}">{{ $book->book_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <button type="submit">Continue</button>
-            </form>
-        </div>
+
+        <?php $payments = App\Models\Payment::where('user_id', auth()->id())->get() ?>
+        @foreach($payments as $payment)
+            <div class="{{ $payment->payment_status == '1' ? 'none' : '' }}">
+                <h3>Payment ID: {{ $payment->id }}</h3>
+                <p>Book Title: {{ $payment->borrowing->book->book_name }}</p>
+                <p>User: {{ $payment->borrowing->user->name }}</p>
+                <p>Amount: Rp {{ number_format($payment->amount, 0, ',', '.') }}</p>
+                <button onclick="openPaymentGateway({{ $payment->id }})">Pay</button>
+            </div>
+        @endforeach
+
+        @include('user.__payment')
+
+        <script>
+            function openPaymentGateway(paymentId) {
+                const modal = document.getElementById('paymentGatewayModal');
+                modal.style.display = 'block';
+
+                const confirmButton = document.getElementById('confirmPaymentButton');
+                confirmButton.onclick = function() {
+                    confirmPayment(paymentId);
+                }
+            }
+
+            function closePaymentGateway() {
+                const modal = document.getElementById('paymentGatewayModal');
+                modal.style.display = 'none';
+            }
+
+            function confirmPayment(paymentId) {
+                fetch(`/payments/${paymentId}/pay`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ payment_status: true })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Payment successful!');
+                        location.reload(); // Reload the page to reflect changes
+                    } else {
+                        alert('Payment failed. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Payment failed. Please try again.');
+                });
+
+                closePaymentGateway();
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const modal = document.getElementById('paymentGatewayModal');
+                const closeModal = document.getElementsByClassName('close')[0];
+
+                closeModal.onclick = function() {
+                    modal.style.display = 'none';
+                }
+
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = 'none';
+                    }
+                }
+            });
+        </script>
     </div>
-
 </div>
+<style>
+        .none{
+            display: none;
+        }
 
+        .content1 {
+            background-color: #192a3a;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 800px;
+            right: 50%;
+            transform: translateX(20%);
+            margin-top: 50px;
+        }
+
+        .content1 h2 {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .content1 p {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #9a9a9a;
+        }
+
+        .content1 form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content1 form div {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content1 form label {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: rgba(255, 255, 255, 0.710);
+        }
+
+        .content1 form input, .content1 form select {
+            padding: 10px;
+            border: 1px solid #9a9a9a;
+            border-radius: 5px;
+            background-color: #27374D;
+            color: rgb(255, 255, 255);
+        }
+
+        .content1 form button {
+            background-color: #FFB319;
+            color: #192a3a;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .content1 form button:hover {
+            background-color: #e0a00e;
+        }
+
+</style>
 </body>
 </html>

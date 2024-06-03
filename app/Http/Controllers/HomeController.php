@@ -66,6 +66,11 @@ class HomeController extends Controller
         return view('admin.add-book');
     }
 
+    public function addBookCrew()
+    {
+        return view('crew.add-book');
+    }
+
     public function crewHome()
     {
         return view('crew.home',["msg"=>"I am crew role"]);

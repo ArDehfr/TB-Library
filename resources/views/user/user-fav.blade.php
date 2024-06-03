@@ -59,11 +59,17 @@
             </div>
             <div class="dropdown">
                 <button class="dropbtn">
-                    {{-- @if (Auth::user()->picture)
-                       <img src="{{ asset(Auth::user()->picture) }}" alt="" class="w-8 h-8 rounded-full object-cover mr-2">
-                    @endif --}}
-                    {{ Auth::user()->name }}
-                    <i style="margin-left: 5px" class="fas fa-caret-down"></i>
+                    <div style="display: flex">
+                        @if (Auth::user()->picture)
+                            <img src="{{ asset(Auth::user()->picture) }}" alt="{{ Auth::user()->name }}" style="width: 2rem; height: 2rem; border-radius: 9999px; object-fit: cover; margin-right: 0.5rem;">
+                        @else
+                            <img src="{{ asset('assets/user.png') }}" alt="Default Profile Picture" style="width: 2rem; height: 2rem; border-radius: 9999px; object-fit: cover; margin-right: 0.5rem;">
+                        @endif
+                        <div style="margin-top: 3px; margin-left:5px;">
+                            {{ Auth::user()->name }}
+                            <i style="margin-left: 5px" class="fas fa-caret-down"></i>
+                        </div>
+                    </div>
                 </button>
                 <div class="dropdown-content">
                     <a href="{{ route('profile.edit') }}">Profile</a>
@@ -81,19 +87,17 @@
                 <div class="content2">
                     <h1></h1>
                 </div>
-                <div class="content3">
-                    <h1></h1>
-                </div>
             </div>
-
-
         <aside>
 
         </aside>
     </div>
     </div>
-
 </div>
-
+<style>
+    .content2{
+        height: 90dvh;
+    }
+</style>
 </body>
 </html>

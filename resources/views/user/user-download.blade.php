@@ -10,7 +10,7 @@
     <script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script>
-        function logout() {
+        function logout(event) {
             event.preventDefault();
             Swal.fire({
                 title: 'Are you sure?',
@@ -26,10 +26,18 @@
                 }
             })
         }
+
+        function showRejectionReason(reason) {
+            Swal.fire({
+                title: 'Rejection Reason',
+                text: reason,
+                icon: 'info',
+                confirmButtonText: 'OK'
+            });
+        }
     </script>
 </head>
 <body>
-
 <div class="wrapper">
     <div class="sidebar">
         <h2>TB Library</h2>
@@ -48,7 +56,7 @@
             <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                 @csrf
             </form>
-            <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Log Out</a></li>
+            <li><a href="#" onclick="logout(event)"><i class="fas fa-sign-out-alt"></i>Log Out</a></li>
         </ul>
     </div>
     <div class="main_content">
@@ -59,25 +67,31 @@
             </div>
             <div class="dropdown">
                 <button class="dropbtn">
-                    {{-- @if (Auth::user()->picture)
-                       <img src="{{ asset(Auth::user()->picture) }}" alt="" class="w-8 h-8 rounded-full object-cover mr-2">
-                    @endif --}}
-                    {{ Auth::user()->name }}
-                    <i style="margin-left: 5px" class="fas fa-caret-down"></i>
+                    <div style="display: flex">
+                        @if (Auth::user()->picture)
+                            <img src="{{ asset(Auth::user()->picture) }}" alt="{{ Auth::user()->name }}" style="width: 2rem; height: 2rem; border-radius: 9999px; object-fit: cover; margin-right: 0.5rem;">
+                        @else
+                            <img src="{{ asset('assets/user.png') }}" alt="Default Profile Picture" style="width: 2rem; height: 2rem; border-radius: 9999px; object-fit: cover; margin-right: 0.5rem;">
+                        @endif
+                        <div style="margin-top: 3px; margin-left:5px;">
+                            {{ Auth::user()->name }}
+                            <i style="margin-left: 5px" class="fas fa-caret-down"></i>
+                        </div>
+                    </div>
                 </button>
                 <div class="dropdown-content">
                     <a href="{{ route('profile.edit') }}">Profile</a>
                     <li class="nav-link">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button onclick="logout()" type="submit" class="drpbtn">Log out</button>
+                            <button onclick="logout(event)" type="submit" class="drpbtn">Log out</button>
                         </form>
                     </li>
                 </div>
             </div>
         </div>
-        <div class="content">
-            <h2>Pending Book Requests</h2>
+        <div style="display: flex; flex-direction:column;" class="content">
+            <h2 style="color: white; margin-top:20px;">Book History</h2>
             <?php $borrowings = App\Models\Borrowing::where('user_id', auth()->id())->get(); ?>
             <table>
                 <thead>
@@ -96,15 +110,8 @@
                             <td>{{ optional($borrowing->user)->name ?? 'User not found' }}</td>
                             <td>{{ $borrowing->day_rent }}</td>
                             <td>{{ $borrowing->day_return }}</td>
-                            <td>
-                                @if ($borrowing->status == 'approved')
-                                    <form action="{{ route('borrow.return', $borrowing->id) }}" method="POST">
-                                        @csrf
-                                        <button type="submit">Return</button>
-                                    </form>
-                                @else
-                                    {{ $borrowing->status }}
-                                @endif
+                            <td class="{{ $borrowing->status == 'returned' ? 'returned-row' : ($borrowing->status == 'rejected' ? 'rejected-row' : 'status') }}" onclick="if ('{{ $borrowing->status }}' === 'rejected') { showRejectionReason('{{ $borrowing->rejection_reason }}') }">
+                                {{ $borrowing->status }}
                             </td>
                         </tr>
                     @endforeach
@@ -112,8 +119,50 @@
             </table>
         </div>
     </div>
-
 </div>
+<style>
+    table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
 
+table, th, td {
+    border: 1px solid #3b4958;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+}
+
+th {
+    background-color: #27374D;
+}
+
+tr:nth-child(even) {
+    background-color: #3b4958;
+}
+
+tr:nth-child(odd) {
+    background-color: #2e3b4e;
+}
+
+.status, .returned-row, .rejected-row {
+    cursor: pointer;
+    color: #ffffff;
+}
+
+.returned-row {
+    background-color: #28a745;
+}
+
+.rejected-row {
+    background-color: #dc3545;
+}
+.status {
+    background-color: #dcd935;
+}
+</style>
 </body>
 </html>

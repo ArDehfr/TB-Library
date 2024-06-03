@@ -9,7 +9,7 @@ class Borrowing extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['book_id', 'user_id', 'day_rent', 'day_return', 'status'];
+    protected $fillable = ['book_id', 'user_id', 'day_rent', 'day_return', 'status', 'rejection_reason', 'status_return',];
 
     public function book()
     {
@@ -18,12 +18,11 @@ class Borrowing extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id'); // Use 'user_id' as the foreign key
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function returned()
     {
         return $this->hasOne(Returned::class);
     }
-
 }

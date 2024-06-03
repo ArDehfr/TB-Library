@@ -30,10 +30,14 @@
         function showBookDetails(book) {
             const aside = document.querySelector('aside');
             aside.innerHTML = `
-                <h2>${book.book_name}</h2>
-                <img src="{{ asset('fotobuku/') }}/${book.book_cover}" alt="${book.book_name}" style="width:100px; height:150px;">
-                <p><strong>Author:</strong> ${book.writer}</p>
-                <p><strong>Description:</strong> ${book.synopsis}</p>
+            <div class="aside-content">
+                <div class="aside-content1">
+                    <img src="{{ asset('fotobuku/') }}/${book.book_cover}" alt="${book.book_name}" style="width:160px; height:220px;">
+                    <p><strong>${book.book_name}</strong></p>
+                    <p><strong>Author:</strong> ${book.writer}</p>
+                    <p><strong>Description:</strong> ${book.synopsis}</p>
+                </div>
+                </div>
             `;
         }
     </script>
@@ -89,8 +93,8 @@
         <div class="content">
             <div class="content-main">
                 <div style="display: flex; flex-direction:column;" class="content2">
-                    <div style="display: flex; align-items:center; justify-content:space-around; gap:440px; margin-top:10px" class="text-recommended">
-                        <h1 style="font-size: 18px">Recommended</h1>
+                    <div style="display: flex; align-items:center; justify-content:space-around; gap:440px; margin-top:15px;" class="text-recommended">
+                        <h1 style="font-size: 20px">Recommended</h1>
                         <a href="">see all</a>
                     </div>
                     <div class="book-cards">
@@ -105,7 +109,7 @@
                                 }
                             ?>
                             <div class="book-card" style="z-index: 999" onclick="showBookDetails({{ json_encode($book) }})">
-                                <img src="{{ asset('fotobuku/' . $book->book_cover) }}" alt="{{ $book->book_name }}" style=" width:90px; height:130px;">
+                                <img src="{{ asset('fotobuku/' . $book->book_cover) }}" alt="{{ $book->book_name }}" style=" width:110px; height:150px;">
                                 <div class="card-body">
                                     <h5 class="card-title">{{ $bookNameShortened }}</h5>
                                     <p class="card-text">{{ $book->writer }}</p>
@@ -118,22 +122,41 @@
                     <h1></h1>
                 </div>
             </div>
-        <aside>
-            <h2>Book Details</h2>
-            <p>Click on a book to see the details here.</p>
+        <aside class="aside-content">
+            <div class="aside-content1">
+                <h2>Book Details</h2>
+                <p style="text-align: center">Click on a book to see the details here.</p>
+            </div>
         </aside>
     </div>
     </div>
 </div>
 
 <style>
+    .aside-content1{
+        display: flex;
+        flex-direction: column;
+        color: white;
+        align-items: center;
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+
+    .aside-content{
+        display: flex;
+        flex-direction: column;
+        color: white;
+        align-items: center;
+        padding-left: 13px;
+        padding-right: 13px
+    }
 
     .book-cards {
         display: flex;
         flex-wrap: wrap;
-        gap: 20px;
-        margin-top: 10px;
-        margin-left: 75px
+        gap: 16px;
+        margin-top: 15px;
+        margin-left: 18px
     }
 
     .book-card {
@@ -143,7 +166,7 @@
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         width: 130px;
-        height: 200px;
+        height: 220px;
         text-align: center;
         cursor: pointer;
     }

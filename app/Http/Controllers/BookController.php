@@ -15,6 +15,11 @@ class BookController extends Controller
         $books = Book::all();
         return view('admin.book', ['books' => $books]);
     }
+    public function indexCrew()
+    {
+        $books = Book::all();
+        return view('crew.add', ['books' => $books]);
+    }
 
     // In your controller
     public function showBooks()
@@ -111,6 +116,41 @@ class BookController extends Controller
 
         return redirect()->route('admin.book')->with('success', 'Data Updated Successfully');
     }
+
+    public function updateCrew(Request $request, $book_id)
+    {
+        $request->validate([
+            'book_name' => 'required|string|max:255',
+            'categories' => 'required|string|max:255',
+            'book_cover' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'writer' => 'required|string|max:255',
+            'publisher' => 'required|string|max:255',
+            'year' => 'required|integer',
+            'synopsis' => 'required|string',
+            'rent_price' => 'required|integer',
+        ]);
+
+        $book = Book::findOrFail($book_id);
+        $book->book_name = $request->book_name;
+        $book->categories = $request->categories;
+        $book->writer = $request->writer;
+        $book->publisher = $request->publisher;
+        $book->year = $request->year;
+        $book->synopsis = $request->synopsis;
+        $book->rent_price = $request->rent_price;
+
+        if ($request->hasFile('book_cover')) {
+            $file = $request->file('book_cover');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move('fotobuku', $filename);
+            $book->book_cover = $filename;
+        }
+
+    $book->save();
+
+        return redirect()->route('crew.add')->with('success', 'Data Updated Successfully');
+    }
+
 
     /**
      * Remove the specified resource from storage.

@@ -50,19 +50,16 @@ class ProfileController extends Controller
             $user->email_verified_at = null;
         }
 
-        // Upload profile picture
         if ($request->hasFile('picture')) {
-            $request->validate([
-                'picture' => ['image', 'mimes:jpg,png,gif', 'max:3072']
-            ]);
+            $file = $request->file('picture');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $filePath = 'profile/' . $filename;
 
-            $directory = 'public/pictures';
-            if (!File::exists($directory)) {
-                File::makeDirectory($directory, 0755, true);
-            }
+            // Move the file to the 'public/profile' directory
+            $file->move(public_path('profile'), $filename);
 
-            $path = $request->file('picture')->store($directory);
-            $user->picture = $path;
+            // Save the filename in the user's profile
+            $user->picture = $filePath;
         }
 
         $user->save();
@@ -76,7 +73,7 @@ class ProfileController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         $request->validate([
-            'password' => ['required', 'password'] // Assuming you have a custom validation rule for 'password'
+            'password' => ['required', 'password'], // Assuming you have a custom validation rule for 'password'
         ]);
 
         $user = $request->user();
@@ -94,18 +91,23 @@ class ProfileController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'picture' => ['required', 'image', 'mimes:jpg,png,gif', 'max:3072']
+            'picture' => ['required', 'image', 'mimes:jpg,png,gif', 'max:3072'],
         ]);
 
-        $directory = 'public/pictures';
+        $directory = 'public/profile';
         if (!File::exists($directory)) {
             File::makeDirectory($directory, 0755, true);
         }
 
-        $path = $request->file('picture')->store($directory);
+        $file = $request->file('picture');
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $filePath = $directory . '/' . $filename;
+
+        // Move the file to the 'public/profile' directory
+        $file->move(public_path('profile'), $filename);
 
         $user = $request->user();
-        $user->picture = $path;
+        $user->picture = 'profile/' . $filename;
         $user->save();
 
         return redirect()->back()->with('status', 'Picture uploaded successfully');
