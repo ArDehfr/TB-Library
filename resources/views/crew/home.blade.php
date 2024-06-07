@@ -100,14 +100,15 @@
                     <div class="book-cards">
                         <?php $books = App\Models\Book::all(); ?>
                         @foreach($books as $book)
-                            <?php
+                        @if($book->book_id <= 6)
+                        <?php
                                 $maxWords = 2;
                                 $bookNameArray = explode(' ', $book->book_name);
                                 $bookNameShortened = implode(' ', array_slice($bookNameArray, 0, $maxWords));
                                 if (count($bookNameArray) > $maxWords) {
                                     $bookNameShortened .= '...';
                                 }
-                            ?>
+                                ?>
                             <div class="book-card" style="z-index: 999" onclick="showBookDetails({{ json_encode($book) }})">
                                 <img src="{{ asset('fotobuku/' . $book->book_cover) }}" alt="{{ $book->book_name }}" style=" width:110px; height:150px;">
                                 <div class="card-body">
@@ -115,6 +116,7 @@
                                     <p class="card-text">{{ $book->writer }}</p>
                                 </div>
                             </div>
+                            @endif
                         @endforeach
                     </div>
                 </div>

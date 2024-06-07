@@ -10,7 +10,7 @@
     <script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script>
-        function logout() {
+        function logout(event) {
             event.preventDefault();
             Swal.fire({
                 title: 'Are you sure?',
@@ -29,22 +29,19 @@
 
         function showBookDetails(book) {
             const aside = document.querySelector('aside');
-            let description = book.synopsis.split(' ').slice(0, 15).join(' ');
-            if (book.synopsis.split(' ').length > 15) {
+            let description = book.synopsis.split(' ').slice(0, 25).join(' ');
+            if (book.synopsis.split(' ').length > 25) {
                 description += '...';
             }
 
             const bookDetailsHTML = `
                 <div class="aside-content">
-                    <img src="{{ asset('fotobuku/') }}/${book.book_cover}" alt="${book.book_name}" style="width:160px; height:220px;">
-                    <br>
-                    <p><strong>${book.book_name}</strong></p>
-                    <br>
-                    <p><strong>Author:</strong> ${book.writer}</p>
-                    <br>
-                    <p><strong>Description:</strong> ${description}</p>
+                    <img src="{{ asset('fotobuku/') }}/${book.book_cover}" alt="${book.book_name}" style="width:160px; height:220px; border-radius:5px;">
+                    <p style="text-align:center; margin-top:10px; margin-bottom:5px"><strong>${book.book_name}</strong></p>
+                    <p style="margin-bottom:5px"><strong></strong> ${book.writer}</p>
+                    <p style="text-align:center; margin-bottom:15px"><strong></strong> ${description}</p>
                     <button onclick='readBook(${book.book_id})'>Read Book</button>
-                    <button onclick='showBorrowModal(${JSON.stringify(book.book_id)}, "${book.book_name.replace(/"/g, '&quot;')}")'>Borrow Book</button>
+                    <button onclick='showBorrowModal(${book.book_id}, "${book.book_name.replace(/"/g, '&quot;')}")'>Borrow Book</button>
                 </div>
             `;
             aside.innerHTML = bookDetailsHTML;
@@ -55,7 +52,6 @@
         }
 
         function showBorrowModal(bookId, bookName) {
-            console.log('showBorrowModal called with:', bookId, bookName); // Debugging
             const modal = document.getElementById('borrow-modal');
             modal.style.display = 'block';
             document.getElementById('modal-book-id').value = bookId;
@@ -63,8 +59,26 @@
         }
 
         function closeBorrowModal() {
-            console.log('closeBorrowModal called'); // Debugging
             document.getElementById('borrow-modal').style.display = 'none';
+        }
+
+        function toggleFavorite(bookId, event) {
+            event.stopPropagation();
+            const heartIcon = document.getElementById(`heart-icon-${bookId}`);
+            const isFavorited = heartIcon.classList.contains('fas');
+
+            fetch(`/favorite/${bookId}`, {
+                method: isFavorited ? 'DELETE' : 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                },
+            }).then(response => response.json())
+              .then(data => {
+                  console.log(data.message);
+                  heartIcon.classList.toggle('fas');
+                  heartIcon.classList.toggle('far');
+              });
         }
     </script>
     <style>
@@ -76,7 +90,7 @@
             color: white;
             align-items: center;
             padding-left: 30px;
-            padding-right: 30px
+            padding-right: 30px;
         }
 
         .book-cards {
@@ -84,7 +98,7 @@
             flex-wrap: wrap;
             gap: 16px;
             margin-top: 15px;
-            margin-left: 18px
+            margin-left: 18px;
         }
 
         .book-card {
@@ -92,11 +106,17 @@
             color: #000;
             padding: 10px;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 130px;
             height: 220px;
             text-align: center;
             cursor: pointer;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .book-card:hover {
+            transform: scale(1.1);
         }
 
         .book-card img {
@@ -104,6 +124,11 @@
             height: auto;
             border-radius: 8px;
             margin-bottom: 5px;
+            transition: transform 0.3s;
+        }
+
+        .book-card:hover img {
+            transform: scale(1.1);
         }
 
         .book-card h5 {
@@ -113,20 +138,49 @@
         .book-card p {
             color: #666;
             margin-bottom: 2px;
-            font-size: 10px
+            font-size: 10px;
         }
 
         .book-card button {
-            background-color: #3085d6;
+            background-color: #00000096;
             color: #fff;
             border: none;
-            padding: 10px 20px;
+            padding: 0px 5px;
             border-radius: 5px;
             cursor: pointer;
         }
 
         .book-card button:hover {
-            background-color: #2874a6;
+            background-color: #000000c2;
+        }
+
+        .favorite-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #e74c3c;
+            z-index: 200;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: none;
+        }
+
+        .favorite-btn .fa-heart {
+            transition: color 0.3s;
+        }
+
+        .favorite-btn .fa-heart.fas {
+            color: #e74c3c;
+        }
+
+        .favorite-btn .fa-heart.far {
+            color: #ccc;
+        }
+
+        .book-card:hover .favorite-btn {
+            display: block;
         }
 
         /* Modal styles */
@@ -175,7 +229,7 @@
         <ul>
             <li><a style="color: white; font-weight:600" href="#"><i class="fas fa-home"></i>Discover</a></li>
             <li><a href="{{ route('home.fav') }}"><i class="fas fa-heart"></i>Favourite</a></li>
-            <li><a href="{{ route('home.lib') }}"><i class="fas fa-book"></i>My Library</a></li>
+            <li><a href="{{ route('home.lib') }}"><i class="fas fa-money-bill-wave"></i>Payment</a></li>
             <li><a href="{{ route('home.download') }}"><i class="fas fa-bell"></i>Approval</a></li>
         </ul>
         <hr style="border-color: #27374D">
@@ -186,7 +240,7 @@
             <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                 @csrf
             </form>
-            <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Log Out</a></li>
+            <li><a href="#" onclick="logout(event)"><i class="fas fa-sign-out-alt"></i>Log Out</a></li>
         </ul>
     </div>
     <div class="main_content">
@@ -229,6 +283,7 @@
                     </div>
                     <div class="book-cards">
                         <?php $books = App\Models\Book::all(); ?>
+                        <?php $favorites = Auth::user()->favorites->pluck('book_id')->toArray(); ?>
                         @foreach($books as $book)
                             @if($book->book_id <= 6)
                                 <?php
@@ -241,6 +296,9 @@
                                 ?>
                                 <div class="book-card" style="z-index: 999" onclick="showBookDetails({{ json_encode($book) }})">
                                     <img src="{{ asset('fotobuku/' . $book->book_cover) }}" alt="{{ $book->book_name }}" style=" width:110px; height:150px;">
+                                    <button class="favorite-btn" onclick='toggleFavorite({{ $book->book_id }}, event)'>
+                                        <i class="{{ in_array($book->book_id, $favorites) ? 'fas' : 'far' }} fa-heart" id="heart-icon-{{ $book->book_id }}"></i>
+                                    </button>
                                     <div class="card-body">
                                         <h5 class="card-title">{{ $bookNameShortened }}</h5>
                                         <p class="card-text">{{ $book->writer }}</p>
@@ -249,7 +307,6 @@
                             @endif
                         @endforeach
                     </div>
-
                 </div>
                 <div class="content3">
                     <h1></h1>

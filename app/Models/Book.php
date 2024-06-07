@@ -21,4 +21,15 @@ class Book extends Model
         'synopsis',
         'rent_price',
     ];
+
+    public function favoritedBy()
+    {
+        return $this->belongsToMany(User::class, 'favorites', 'book_id', 'user_id');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'book_id', 'book_id');
+    }
+
 }

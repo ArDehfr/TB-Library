@@ -86,7 +86,7 @@
                         <th>Borrower</th>
                         <th>Day Rent</th>
                         <th>Day Return</th>
-                        <th>Returned At</th>
+                        <th>Report</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -97,7 +97,7 @@
                             <td>{{ $return->borrowing->user->name }}</td>
                             <td>{{ $return->borrowing->day_rent }}</td>
                             <td>{{ $return->borrowing->day_return }}</td>
-                            <td>{{ $return->returned_at }}</td>
+                            <td>{{ $return->borrowing->return_report }}</td>
                         </tr>
                     @endforeach
                 </tbody>

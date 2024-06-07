@@ -10,7 +10,7 @@
                             <div class="card">
                                 <div class="card-header p-0" id="headingTwo">
                                     <h2 class="mb-0">
-                                        <button class="btn btn-light btn-block text-left p-3 rounded-0 border-bottom-custom" type="button" onclick="toggleCollapse('collapseTwo')">
+                                        <button style="border-radius:15px;" class="btn btn-light btn-block text-left p-3 rounded-0 border-bottom-custom" type="button" onclick="toggleCollapse('collapseTwo')">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <span style="margin-top: 5px">Gopay</span>
                                                 <img src="{{ asset('gopay.png') }}" width="30">
@@ -27,7 +27,7 @@
                             <div class="card">
                                 <div class="card-header p-0">
                                     <h2 class="mb-0">
-                                        <button class="btn btn-light btn-block text-left p-3 rounded-0" type="button" onclick="toggleCollapse('collapseOne')">
+                                        <button style="border-radius:15px;" class="btn btn-light btn-block text-left p-3 rounded-0" type="button" onclick="toggleCollapse('collapseOne')">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <span style="margin-top: 10px">Credit card</span>
                                                 <div class="icons">
@@ -75,32 +75,22 @@
                     <div class="card">
                         <div class="d-flex justify-content-between p-3">
                             <div class="d-flex flex-column">
-                                <span>Pro(Billed Monthly) <i class="fa fa-caret-down"></i></span>
-                                <a href="#" class="billing">Save 20% with annual billing</a>
+                                <span><strong>Total</strong></span>
                             </div>
                             <div class="mt-1">
-                                <sup class="super-price">$9.99</sup>
-                                <span class="super-month">/Month</span>
+                                <sup class="super-price">Rp {{ number_format($payment->amount, 0, ',', '.') }}</sup>
                             </div>
                         </div>
-                        <hr class="mt-0 line">
+                        <hr style="width:100%;" class="mt-0 line">
                         <div class="p-3">
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Referral Bonuses</span>
-                                <span>-$2.00</span>
+                                <span>Status</span>
+                                <span>{{ $payment->borrowing->status_return }}</span>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <span>Vat <i class="fa fa-clock-o"></i></span>
-                                <span>-20%</span>
+                                <span>Rent Price <i class="fa fa-clock-o"></i></span>
+                                <span>Rp {{ number_format($payment->borrowing->book->rent_price, 0, ',', '.') }}</span>
                             </div>
-                        </div>
-                        <hr class="mt-0 line">
-                        <div class="p-3 d-flex justify-content-between">
-                            <div class="d-flex flex-column">
-                                <span>Today you pay(US Dollars)</span>
-                                <small>After 30 days $9.59</small>
-                            </div>
-                            <span>$0</span>
                         </div>
                         <div class="p-3">
                             <button class="btn btn-primary btn-block free-button" id="confirmPaymentButton">Confirm Payment</button>
@@ -130,13 +120,18 @@
 }
 
 .modal-content {
+    border-radius: 20px;
     background-color: #fefefe;
     margin: 5% auto;
     padding: 20px;
     border: 1px solid #888;
-    height: 100%;
+    height: 80%; /* Fixed height */
     width: 50%; /* Could be more or less, depending on screen size */
+    overflow-y: auto; /* Add vertical scrollbar if content overflows */
 }
+
+
+
 
 .close {
     color: #aaa;
@@ -257,7 +252,7 @@
 }
 
 .line {
-    border-top: 1px solid #bfbdbd;
+    border-top: 1px solid #949494;
     margin: 0;
 }
 

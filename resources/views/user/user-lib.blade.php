@@ -51,7 +51,7 @@
         <ul>
             <li><a href="{{ route('home') }}"><i class="fas fa-home"></i>Discover</a></li>
             <li><a href="{{ route('home.fav') }}"><i class="fas fa-heart"></i>Favourite</a></li>
-            <li><a style="color: white; font-weight:600" href=""><i class="fas fa-book"></i>My Library</a></li>
+            <li><a style="color: white; font-weight:600" href=""><i class="fas fa-money-bill-wave"></i>Payment</a></li>
             <li><a href="{{ route('home.download') }}"><i class="fas fa-bell"></i>Approval</a></li>
         </ul>
         <hr style="border-color: #27374D">

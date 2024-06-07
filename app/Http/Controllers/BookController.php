@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\Favorite;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BookController extends Controller
 {
@@ -13,8 +15,17 @@ class BookController extends Controller
     public function index()
     {
         $books = Book::all();
-        return view('admin.book', ['books' => $books]);
+        $favorites = Auth::user()->favorites->pluck('book_id')->toArray();
+        return view('admin.book', ['books' => $books, 'favorites' => $favorites]);
     }
+
+    public function indexUser()
+    {
+        $books = Book::all();
+        $favorites = Auth::user()->favorites->pluck('book_id')->toArray();
+        return view('home', ['books' => $books, 'favorites' => $favorites]);
+    }
+
     public function indexCrew()
     {
         $books = Book::all();
@@ -81,7 +92,6 @@ class BookController extends Controller
         return view('books.edit', compact('book', 'categories'));
     }
 
-
     /**
      * Update the specified resource in storage.
      */
@@ -112,7 +122,7 @@ class BookController extends Controller
             $book->book_cover = $filename;
         }
 
-    $book->save();
+        $book->save();
 
         return redirect()->route('admin.book')->with('success', 'Data Updated Successfully');
     }
@@ -146,11 +156,10 @@ class BookController extends Controller
             $book->book_cover = $filename;
         }
 
-    $book->save();
+        $book->save();
 
         return redirect()->route('crew.add')->with('success', 'Data Updated Successfully');
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -162,4 +171,9 @@ class BookController extends Controller
         return redirect()->route('admin.book')->with('success', 'Book deleted successfully');
     }
 
+    public function read($bookId)
+    {
+        $book = Book::findOrFail($bookId);
+        return view('user.read', compact('book'));
+    }
 }

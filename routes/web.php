@@ -8,6 +8,8 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\BorrowingController;
 use App\Http\Controllers\TeapotController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\ReviewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,6 +65,7 @@ Route::middleware(['auth','user-role:user'])->group(function()
 Route::middleware(['auth','user-role:user'])->group(function()
 {
     Route::get("/home/download",[HomeController::class, 'userDownload'])->name('home.download');
+    Route::get("/user/book", [BookController::class, 'indexUser'])->name('books.index');
 });
 
 // Admin routes
@@ -113,7 +116,17 @@ Route::get('/crew/book', [BookController::class, 'indexCrew'])->name('crew.add')
 Route::put('/books/{book}', [BookController::class, 'update'])->name('admin.book.update');
 Route::put('/crew/book/{book}', [BookController::class, 'updateCrew'])->name('crew.book.update');
 Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
+Route::get('/read/{book}', [BookController::class, 'read'])->name('read.book');
 
 // payment routes
 Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index')->middleware('auth');
 Route::post('/payments/{payment}/pay', [PaymentController::class, 'pay']);
+
+//favorite routes
+Route::post('/favorite/{book}', [FavoriteController::class, 'store'])->name('favorite.store');
+Route::delete('/favorite/{book}', [FavoriteController::class, 'destroy'])->name('favorite.destroy');
+// Route::get('/favorites', [FavoriteController::class, 'showFavorites'])->name('home.fav');
+
+//Review routes
+Route::get('/books/{bookId}/review', [ReviewController::class, 'showReviewForm'])->name('review.form');
+Route::post('/books/{bookId}/review', [ReviewController::class, 'submitReview'])->name('review.submit');
