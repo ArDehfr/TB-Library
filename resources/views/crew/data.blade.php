@@ -36,9 +36,9 @@
         <h2>TB Library</h2>
         <ul>
             <li><a href="{{ route('home.crew') }}"><i class="fas fa-home"></i>Discover</a></li>
-            <li><a href="{{ route('list.crew') }}"><i class="fas fa-list"></i>Book List</a></li>
-            <li><a href="{{ route('add.crew') }}"><i class="fas fa-book"></i>Add Book</a></li>
-            <li><a style="color: white; font-weight:600" href="#"><i class="fas fa-database"></i>Customer Data</a></li>
+            <li><a href="{{ route('list.crew') }}"><i class="fas fa-list"></i>Waiting List</a></li>
+            <li><a href="{{ route('add.crew') }}"><i class="fas fa-book"></i>Book Data</a></li>
+            <li><a style="color: white; font-weight:600" href="#"><i class="fas fa-database"></i>History</a></li>
         </ul>
         <hr style="border-color: #27374D">
         <ul style="margin-bottom: 173px">
@@ -56,8 +56,30 @@
         <div class="header">
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input style="width: 250px" type="text" class="search-bar" placeholder="Search your favourite books">
+                <input id="search-bar" style="width: 250px" type="text" class="search-bar" placeholder="Search your favourite books">
             </div>
+            <script>
+                function searchTable() {
+                        const query = document.getElementById('search-bar').value.toLowerCase();
+                        const rows = document.querySelectorAll('table tbody tr');
+
+                        rows.forEach(row => {
+                            const cells = row.getElementsByTagName('td');
+                            let match = false;
+                            for (let i = 0; i < cells.length; i++) {
+                                if (cells[i].textContent.toLowerCase().includes(query)) {
+                                    match = true;
+                                    break;
+                                }
+                            }
+                            row.style.display = match ? '' : 'none';
+                        });
+                    }
+
+                    document.addEventListener('DOMContentLoaded', () => {
+                        document.getElementById('search-bar').addEventListener('input', searchTable);
+                    });
+            </script>
             <div class="dropdown">
                 <button class="dropbtn">
                     {{-- @if (Auth::user()->picture)

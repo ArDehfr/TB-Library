@@ -79,7 +79,7 @@ class BookController extends Controller
 
         $book->save();
 
-        return redirect()->route('admin.book')->with('success', 'Data Added Successfully');
+        return redirect()->back()->with('success', 'Data Added Successfully');
     }
 
     /**
@@ -168,12 +168,22 @@ class BookController extends Controller
     {
         $book = Book::findOrFail($book_id);
         $book->delete();
-        return redirect()->route('admin.book')->with('success', 'Book deleted successfully');
+        return redirect()->back()->with('success', 'Book deleted successfully');
     }
 
     public function read($bookId)
     {
         $book = Book::findOrFail($bookId);
         return view('user.read', compact('book'));
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+        $books = Book::where('book_name', 'LIKE', "%{$query}%")
+                      ->orWhere('writer', 'LIKE', "%{$query}%")
+                      ->get();
+
+        return response()->json($books);
     }
 }

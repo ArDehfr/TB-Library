@@ -21,4 +21,11 @@ class PaymentController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function showPaymentPage($paymentId)
+    {
+        $payment = Payment::find($paymentId); // or however you retrieve your payment
+        return view('user.user-lib', compact('payment'));
+    }
+
 }

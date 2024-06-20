@@ -20,10 +20,55 @@
         function closeReviewModal() {
             document.getElementById('reviewModal').style.display = 'none';
         }
+
+        function toggleFavorite(bookId, event) {
+            event.stopPropagation();
+            const heartIcon = document.getElementById(`heart-icon-${bookId}`);
+            const isFavorited = heartIcon.classList.contains('fas');
+
+            fetch(`/favorite/${bookId}`, {
+                method: isFavorited ? 'DELETE' : 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                },
+            }).then(response => response.json())
+              .then(data => {
+                  console.log(data.message);
+                  heartIcon.classList.toggle('fas');
+                  heartIcon.classList.toggle('far');
+              });
+        }
+
+        function showBorrowModal(bookId, bookName, bookQuantities) {
+            const modal = document.getElementById('borrow-modal');
+            modal.style.display = 'block';
+            document.getElementById('modal-book-id').value = bookId;
+            document.getElementById('modal-book-name').textContent = bookName;
+            document.getElementById('modal-book-quantities').textContent = `Quantity Available: ${bookQuantities}`;
+
+            const outOfStock = document.getElementById('out-of-stock');
+            const borrowButton = document.getElementById('borrow-button');
+            const dayRent = document.getElementById('day_rent_input');
+
+            if (bookQuantities > 0) {
+                outOfStock.style.display = 'none';
+                borrowButton.style.display = 'block';
+                dayRent.style.display = 'block';
+            } else {
+                outOfStock.style.display = 'block';
+                borrowButton.style.display = 'none';
+                dayRent.style.display = 'none';
+            }
+        }
+
+        function closeBorrowModal() {
+            document.getElementById('borrow-modal').style.display = 'none';
+        }
     </script>
     <style>
         .book-card button {
-            background-color: #3085d6;
+            background-color: #27374D;
             color: #fff;
             border: none;
             padding: 1px 7px;
@@ -32,7 +77,7 @@
         }
 
         .book-card button:hover {
-            background-color: #2874a6;
+            background-color: #374c6b;
         }
 
         .favorite-btn {
@@ -90,7 +135,6 @@
         }
 
         .review {
-            border-bottom: 1px solid #ccc;
             padding: 10px 0;
         }
 
@@ -106,7 +150,12 @@
         .review .user {
             font-weight: bold;
         }
+
+        .content-lain{
+            color: #000000;
+        }
     </style>
+
 </head>
 <body>
     <?php
@@ -125,7 +174,7 @@
                 <li><a style="color: white; font-weight:600" href="{{ route('home') }}"><i class="fas fa-home"></i>Discover</a></li>
                 <li><a href="{{ route('home.fav') }}"><i class="fas fa-heart"></i>Favourite</a></li>
                 <li><a href="{{ route('home.lib') }}"><i class="fas fa-money-bill-wave"></i>Payment</a></li>
-                <li><a href="{{ route('home.download') }}"><i class="fas fa-bell"></i>Approval</a></li>
+                <li><a href="{{ route('home.download') }}"><i class="fas fa-bell"></i>Notifications</a></li>
             </ul>
             <hr style="border-color: #27374D">
             <ul style="margin-bottom: 173px">
@@ -139,14 +188,23 @@
             </ul>
         </div>
         <div class="main_content">
-            <div class="header">
-                <div class="search-container">
-                    <i class="fas fa-search"></i>
-                    <input style="width: 250px" type="text" class="search-bar" placeholder="Search your favourite books">
-                </div>
+            <style>
+                 .headers{
+                    padding: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content:end;
+                    gap: 300px;
+                    background: #526D82;
+                    color: #ffffff;
+                    height: 85px;
+                    }
+            </style>
+            <div class="headers" style="">
+
                 <div class="dropdown">
                     <button class="dropbtn">
-                        <div style="display: flex">
+                        <div style="display: flex;">
                             @if (Auth::user()->picture)
                                 <img src="{{ asset(Auth::user()->picture) }}" alt="{{ Auth::user()->name }}" style="width: 2rem; height: 2rem; border-radius: 9999px; object-fit: cover; margin-right: 0.5rem;">
                             @else
@@ -173,55 +231,230 @@
                 <div class="book-cards">
                     <div class="book-card" id="book-card-{{ $book->book_id }}">
                         <div class="card-body">
-                            <div>
+                            <div class="content-atas">
                                 <div style="display: flex; justify-content:flex-start" class="content-lain">
-                                    <img src="{{ asset('fotobuku/' . $book->book_cover) }}" alt="{{ $book->book_name }}" style="width:210px; height:250px;">
+                                    <div class="div-buku" style="border-radius:20px; width:250px; height:310px;">
+                                        <img src="{{ asset('fotobuku/' . $book->book_cover) }}" alt="{{ $book->book_name }}" style="border-radius:10px; width:210px; height:270px;">
+                                    </div>
                                     <div class="inline-compponent">
                                         <h5 class="card-title">{{ $book->book_name }}</h5>
-                                        <p class="card-text">{{ $book->writer }}</p>
-                                        <button class="favorite-btn" onclick='toggleFavorite({{ $book->book_id }}, event)'>
-                                            <i class="{{ in_array($book->book_id, $favorites) ? 'fas' : 'far' }} fa-heart" id="heart-icon-{{ $book->book_id }}"></i>
+                                        <p style="margin-bottom: 10px" class="card-text">{{ $book->writer }}</p>
+
+                                        <div style="display: flex;">
+                                            <button class="favorite-btn" onclick='toggleFavorite({{ $book->book_id }}, event)'>
+                                                <i class="{{ in_array($book->book_id, $favorites) ? 'fas' : 'far' }} fa-heart" id="heart-icon-{{ $book->book_id }}"></i>
+                                            </button>
+                                            <div style="display: flex; margin-top:5px; margin-left:15px;" class="rating-btn" data-book-id="{{ $book->book_id }}">
+                                                <i style="color: #ffb400; font-size:24px; margin-right:5px" class="fas fa-star"></i>
+                                                <p style="color: black; font-size:18px"><strong>{{ $book->average_rating }}/5</strong></p>
+                                            </div>
+                                        </div>
+
+                                        <button style="width: 230px; height:40px; font-size:20px; margin-top:90px; margin-bottom:10px;" class="btn-aside" onclick="showBorrowModal({{ $book->book_id }}, '{{ $book->book_name }}', {{ $book->book_quantities }})">
+                                            Borrow Book <i style="margin-left: 10px;" class="fas fa-book"></i>
                                         </button>
+                                        <p style="margin-left: 60px" class="card-text">Book Stock: {{ $book->book_quantities }}</p>
                                     </div>
                                 </div>
                             </div>
-                            <p class="card-text">{{ $book->synopsis }}</p>
+                            <div class="card-synopsis">
+                                <h1>Synopsis</h1>
+                                <div class="scroll-layer">
+                                    <div class="scroll">
+                                    <p style="font-size: 20px" class="card-text">{{ $book->synopsis }}</p>
+                                    </div>
+                                </div>
 
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <style>
 
-            @if($hasReturned && !$userReview)
-                <button onclick="openReviewModal({{ $book->book_id }})" class="btn btn-primary">Write a Review</button>
-            @endif
+                .content-atas{
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
 
-            @if($userReview)
-                <div class="user-review">
-                    <h3>Your Review</h3>
-                    <div class="review">
-                        <span class="rating">{{ str_repeat('★', $userReview->rating) }}</span>
-                        <p class="user">{{ $userReview->user->name }}</p>
-                        <p>{{ $userReview->review }}</p>
-                    </div>
-                </div>
-            @endif
+                .content-lain{
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 35px;
+                    width: 85%;
+                    height: 50dvh;
+                    background-color: #A9C2D4;
+                    border-radius: 20px;
+                    margin-bottom: 20px;
+                    margin-top: 20px;
+                }
 
-            <br>
-            <br>
-            <br>
+                .div-buku{
+                    margin-left: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: white;
+                }
 
-            <div class="other-reviews">
-                <h3>Other Reviews</h3>
-                @foreach ($otherReviews as $review)
-                    @if ($review->book_id == $book->book_id)
-                        <div class="review">
-                            <span class="rating">{{ str_repeat('★', $review->rating) }}</span>
-                            <p class="user">{{ $review->user->name }}</p>
-                            <p>{{ $review->review }}</p>
-                        </div>
+                .card-synopsis{
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-direction: column;
+                    width: 85%;
+                    background-color: #A9C2D4;
+                    right: 50%;
+                    transform: translateX(9%);
+                    padding: 35px;
+                    border-radius: 15px;
+                }
+
+                .scroll-layer{
+                    background-color: #001524;
+                    border-radius: 15px;
+                    margin-top: 20px;
+                    margin-bottom: 10px;
+                }
+
+                .scroll{
+                    right: 50%;
+                    transform: translateX(5.5%);
+                    margin-top: 20px;
+                    margin-bottom: 20px;
+                    background-color: white;
+                    padding: 15px;
+                    overflow: auto;
+                    height: 200px;
+                    border-radius: 10px;
+                    width: 90%;
+                }
+
+                .inline-compponent{
+                    display: flex;
+                    flex-direction: column;
+                    margin-left: 70px;
+                    margin-top: 110px
+                }
+                .inline-compponent h5{
+                    font-size: 25px;
+                    font-weight: 900;
+                    margin-top: -100px
+                }
+
+                .your-review{
+                    background-color: #526D82;
+                    width: 60%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 35px;
+                    border-radius:20px;
+                    margin-bottom: 20px;
+                    margin-top: 20px;
+                }
+
+                .wrapper-your-review{
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .your-review button {
+                    background-color: #27374D;
+                    color: #fff;
+                    border: none;
+                    padding: 1px 7px;
+                    border-radius: 5px;
+                    width: 300px;
+                    height: 50px;
+                    font-size: 24px;
+                    font-weight: 800;
+                    cursor: pointer;
+                }
+
+                .your-review button:hover {
+                    background-color: #374c6b;
+                }
+
+                .review-wrapper{
+                    background-color: #001524;
+                    width: 500px;
+                    padding: 15px;
+                    border-radius:15px;
+                }
+                .reviews-wrapper{
+                    background-color: #001524;
+                    width: 800px;
+                    padding: 15px;
+                    border-radius:15px;
+                    margin-bottom: 10px;
+                }
+                .review{
+                    background-color: white;
+                    padding: 10px;
+                    border-radius:10px;
+                }
+
+                .wrapper-other-review{
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .other-reviews{
+                    background-color: #526D82;
+                    width: 85%;
+                    padding: 35px;
+                    border-radius:20px;
+                    margin-bottom: 20px;
+                    margin-top: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-direction: column;
+                }
+            </style>
+
+            <div class="wrapper-your-review">
+                <div class="your-review">
+                    @if($hasReturned && !$userReview)
+                    <button onclick="openReviewModal({{ $book->book_id }})" class="btn btn-primary">Write a Review</button>
                     @endif
-                @endforeach
+
+                    @if($userReview)
+                    <div class="user-review">
+                        <h3 style="color: white; margin-bottom:10px; font-size:20px">Your Review</h3>
+                        <div class="review-wrapper">
+                           <div class="review">
+                            <span class="rating">{{ str_repeat('★', $userReview->rating) }}</span>
+                            <p class="user">{{ $userReview->user->name }}</p>
+                            <p>{{ $userReview->review }}</p>
+                        </div>
+                        </div>
+
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="wrapper-other-review">
+                <div class="other-reviews">
+                    <h3 style="color: white; margin-bottom:20px; font-size:20px">Reviews</h3>
+                    @foreach ($otherReviews as $review)
+                    @if ($review->book_id == $book->book_id)
+                    <div class="reviews-wrapper">
+                    <div class="review">
+                        <span class="rating">{{ str_repeat('★', $review->rating) }}</span>
+                        <p class="user">{{ $review->user->name }}</p>
+                        <p>{{ $review->review }}</p>
+                    </div>
+                    </div>
+                    @endif
+                    @endforeach
+                </div>
             </div>
         </div>
     </div>
@@ -282,5 +515,71 @@
         </form>
     </div>
 </div>
+
+<!-- Borrow Modal -->
+<div id="borrow-modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeBorrowModal()">&times;</span>
+        <h2>Borrow a Book</h2>
+        <form action="{{ route('borrow.book') }}" method="POST">
+            @csrf
+            <div>
+                <p id="modal-book-quantities"></p>
+                <p id="out-of-stock" style="display: none; color: red;">Out of Stock</p>
+            </div>
+            <div id="day_rent_input">
+                <label for="day_rent">Day Rent:</label>
+                <input type="date" id="day_rent" name="day_rent" required>
+            </div>
+            <div>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" value="{{ Auth::user()->email }}" readonly>
+            </div>
+            <div>
+                <label for="book">Select Book:</label>
+                <input type="hidden" id="modal-book-id" name="book">
+                <p id="modal-book-name"></p>
+            </div>
+            <button id="borrow-button" type="submit">Continue</button>
+        </form>
+    </div>
+</div>
+<style>
+     #borrow-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+</style>
 </body>
 </html>

@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script>
         function logout(event) {
@@ -40,8 +41,8 @@
                     <p style="text-align:center; margin-top:10px; margin-bottom:5px"><strong>${book.book_name}</strong></p>
                     <p style="margin-bottom:5px"><strong></strong> ${book.writer}</p>
                     <p style="text-align:center; margin-bottom:15px"><strong></strong> ${description}</p>
-                    <button onclick='readBook(${book.book_id})'>Read Book</button>
-                    <button onclick='showBorrowModal(${book.book_id}, "${book.book_name.replace(/"/g, '&quot;')}")'>Borrow Book</button>
+                    <button class="btn-aside" onclick='readBook(${book.book_id})'>See More <i style="margin-left:10px;" class="fas fa-book-open"></i></button>
+                    <button class="btn-aside" onclick='showBorrowModal(${book.book_id}, "${book.book_name.replace(/"/g, '&quot;')}", ${book.book_quantities})'>Borrow Book <i style="margin-left:10px;" class="fas fa-book"></i></button>
                 </div>
             `;
             aside.innerHTML = bookDetailsHTML;
@@ -51,16 +52,32 @@
             window.location.href = `/read/${bookId}`;
         }
 
-        function showBorrowModal(bookId, bookName) {
+        function showBorrowModal(bookId, bookName, bookQuantities) {
             const modal = document.getElementById('borrow-modal');
             modal.style.display = 'block';
             document.getElementById('modal-book-id').value = bookId;
             document.getElementById('modal-book-name').textContent = bookName;
+            document.getElementById('modal-book-quantities').textContent = `Quantity Available: ${bookQuantities}`;
+
+            const outOfStock = document.getElementById('out-of-stock');
+            const borrowButton = document.getElementById('borrow-button');
+            const dayRent = document.getElementById('day_rent_input');
+
+            if (bookQuantities > 0) {
+                outOfStock.style.display = 'none';
+                borrowButton.style.display = 'block';
+                dayRent.style.display = 'block';
+            } else {
+                outOfStock.style.display = 'block';
+                borrowButton.style.display = 'none';
+                dayRent.style.display = 'none';
+            }
         }
 
         function closeBorrowModal() {
             document.getElementById('borrow-modal').style.display = 'none';
         }
+
 
         function toggleFavorite(bookId, event) {
             event.stopPropagation();
@@ -80,7 +97,34 @@
                   heartIcon.classList.toggle('far');
               });
         }
+
+        function fetchRatings(bookId) {
+            fetch(`/ratings/${bookId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const ratingDetailsDiv = document.querySelector(`#rating-details-${bookId}`);
+                    ratingDetailsDiv.innerHTML = '';
+
+                    data.ratings.forEach(rating => {
+                        const ratingItem = document.createElement('div');
+                        ratingItem.classList.add('rating-item');
+                        ratingItem.innerHTML = `<span>${rating.user_name}</span><span>${rating.rating}/5</span>`;
+                        ratingDetailsDiv.appendChild(ratingItem);
+                    });
+                })
+                .catch(error => console.error('Error fetching ratings:', error));
+        }
+
+        document.querySelectorAll('.favorite-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', event => {
+                const bookId = event.target.dataset.bookId;
+                fetchRatings(bookId);
+            });
+        });
     </script>
+
+    @extends('layouts.search')
+
     <style>
         .aside-content {
             margin-top: 30px;
@@ -101,6 +145,28 @@
             margin-left: 18px;
         }
 
+        .book-cards-fav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 15px;
+            margin-left: 18px;
+        }
+
+        .book-card-fav {
+            background-color: #fff;
+            color: #000;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 130px;
+            height: 173px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
         .book-card {
             background-color: #fff;
             color: #000;
@@ -119,6 +185,10 @@
             transform: scale(1.1);
         }
 
+        .book-card-fav:hover {
+            transform: scale(1.1);
+        }
+
         .book-card img {
             width: 100%;
             height: auto;
@@ -127,7 +197,19 @@
             transition: transform 0.3s;
         }
 
+        .book-card-fav img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            transition: transform 0.3s;
+        }
+
         .book-card:hover img {
+            transform: scale(1.1);
+        }
+
+        .book-card-fav:hover img {
             transform: scale(1.1);
         }
 
@@ -154,16 +236,50 @@
             background-color: #000000c2;
         }
 
+        .book-card-fav p {
+            color: #666;
+            margin-bottom: 2px;
+            font-size: 10px;
+        }
+
+        .book-card-fav button {
+            background-color: #00000096;
+            color: #fff;
+            border: none;
+            padding: 0px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .book-card-fav button:hover {
+            background-color: #000000c2;
+        }
+
         .favorite-btn {
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 1.5rem;
             color: #e74c3c;
             z-index: 200;
             position: absolute;
-            top: 8px;
             right: 8px;
+            display: none;
+        }
+
+        .rating-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 35px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            font-size: 1rem;
+            color: #e7dc3c;
+            z-index: 200;
+            position: absolute;
+            top: 8px;
+            left: 8px;
             display: none;
         }
 
@@ -175,11 +291,24 @@
             color: #e74c3c;
         }
 
+        .rating-btn .fa-star.fas {
+            color: #e7dc3c;
+        }
+
         .favorite-btn .fa-heart.far {
             color: #ccc;
         }
 
         .book-card:hover .favorite-btn {
+            display: block;
+        }
+        .book-card:hover .rating-btn {
+            display: block;
+        }
+        .book-card-fav:hover .rating-btn {
+            display: block;
+        }
+        .book-card-fav:hover .favorite-btn {
             display: block;
         }
 
@@ -219,6 +348,52 @@
             text-decoration: none;
             cursor: pointer;
         }
+
+        .btn-aside {
+            background-color: #27374D;
+            color: #FFFFFF;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 10px 0px 0px 0px;
+        }
+
+        .btn-aside:hover{
+            background-color: #1b2636;
+        }
+
+        .favorite-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #e74c3c;
+        z-index: 200;
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        display: none;
+    }
+
+    .favorite-btn .fa-heart {
+        transition: color 0.3s;
+    }
+
+    .favorite-btn .fa-heart.fas {
+        color: #e74c3c;
+    }
+
+    .favorite-btn .fa-heart.far {
+        color: #ccc;
+    }
+
+    .book-card:hover .favorite-btn {
+        display: block;
+    }
     </style>
 </head>
 <body>
@@ -230,7 +405,7 @@
             <li><a style="color: white; font-weight:600" href="#"><i class="fas fa-home"></i>Discover</a></li>
             <li><a href="{{ route('home.fav') }}"><i class="fas fa-heart"></i>Favourite</a></li>
             <li><a href="{{ route('home.lib') }}"><i class="fas fa-money-bill-wave"></i>Payment</a></li>
-            <li><a href="{{ route('home.download') }}"><i class="fas fa-bell"></i>Approval</a></li>
+            <li><a href="{{ route('home.download') }}"><i class="fas fa-bell"></i>Notifications</a></li>
         </ul>
         <hr style="border-color: #27374D">
         <ul style="margin-bottom: 173px">
@@ -247,7 +422,7 @@
         <div class="header">
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input style="width: 250px" type="text" class="search-bar" placeholder="Search your favourite books">
+                <input id="search-bar" style="width: 250px" type="text" class="search-bar" placeholder="Search your favourite books">
             </div>
             <div class="dropdown">
                 <button class="dropbtn">
@@ -279,7 +454,13 @@
                 <div style="display: flex; flex-direction:column;" class="content2">
                     <div style="display: flex; align-items:center; justify-content:space-around; gap:460px; margin-top:15px" class="text-recommended">
                         <h1 style="font-size: 20px">Recommended</h1>
-                        <a href="">see all</a>
+                        <a
+                        style="font-weight:600; color:#222f42; transition: color 0.2s ease;"
+                        onmouseover="this.style.color='#FF6347'"
+                        onmouseout="this.style.color='#222f42'"
+                        href="{{ route('home.see') }}">see all
+                        <i style="margin-right: 5px" class="fa-solid fa-arrow-right-long"></i>
+                        </a>
                     </div>
                     <div class="book-cards">
                         <?php $books = App\Models\Book::all(); ?>
@@ -296,8 +477,12 @@
                                 ?>
                                 <div class="book-card" style="z-index: 999" onclick="showBookDetails({{ json_encode($book) }})">
                                     <img src="{{ asset('fotobuku/' . $book->book_cover) }}" alt="{{ $book->book_name }}" style=" width:110px; height:150px;">
-                                    <button class="favorite-btn" onclick='toggleFavorite({{ $book->book_id }}, event)'>
-                                        <i class="{{ in_array($book->book_id, $favorites) ? 'fas' : 'far' }} fa-heart" id="heart-icon-{{ $book->book_id }}"></i>
+                                    <button style="height: 30px" class="favorite-btn" onclick='toggleFavorite({{ $book->book_id }}, event)'>
+                                        <i style="font-size: 1.2rem; margin-top:2px;" class="{{ in_array($book->book_id, $favorites) ? 'fas' : 'far' }} fa-heart" id="heart-icon-{{ $book->book_id }}"></i>
+                                    </button>
+                                    <button class="rating-btn" data-book-id="{{ $book->book_id }}">
+                                        <i class="fas fa-star"></i>
+                                        <p style="color: white; font-size:14px">{{ $book->average_rating }}/5</p>
                                     </button>
                                     <div class="card-body">
                                         <h5 class="card-title">{{ $bookNameShortened }}</h5>
@@ -308,8 +493,64 @@
                         @endforeach
                     </div>
                 </div>
-                <div class="content3">
-                    <h1></h1>
+                <div class="content3" style="display: flex; flex-direction:column;">
+                    <div style="display: flex; margin-left:20px; margin-top:15px" class="text-fav">
+                        <h1 style="font-size: 20px">Categories</h1>
+                    </div>
+                    <div style="margin-left:20px; display:flex; gap:15px; font-size:16px; margin-top:10px;">
+                        <a style="font-weight:600; color:#222f42; transition: color 0.2s ease;" href=""
+                           onmouseover="this.style.color='#FF6347'"
+                           onmouseout="this.style.color='#222f42'">All</a>
+                        <a style="color:#27374D; transition: color 0.2s ease;" href=""
+                           onmouseover="this.style.color='#FF6347'"
+                           onmouseout="this.style.color='#27374D'">Fantasy</a>
+                        <a style="color:#27374D; transition: color 0.2s ease;" href=""
+                           onmouseover="this.style.color='#FF6347'"
+                           onmouseout="this.style.color='#27374D'">Horror</a>
+                        <a style="color:#27374D; transition: color 0.2s ease;" href=""
+                           onmouseover="this.style.color='#FF6347'"
+                           onmouseout="this.style.color='#27374D'">Education</a>
+                        <a style="color:#27374D; transition: color 0.2s ease;" href=""
+                           onmouseover="this.style.color='#FF6347'"
+                           onmouseout="this.style.color='#27374D'">Sci-Fi</a>
+                        <a style="color:#27374D; transition: color 0.2s ease;" href=""
+                           onmouseover="this.style.color='#FF6347'"
+                           onmouseout="this.style.color='#27374D'">Drama</a>
+                        <a style="color:#27374D; transition: color 0.2s ease;" href=""
+                           onmouseover="this.style.color='#FF6347'"
+                           onmouseout="this.style.color='#27374D'">Geography</a>
+                    </div>
+
+                    <div class="book-cards-fav">
+                        <?php $books = App\Models\Book::all(); ?>
+                        <?php $favorites = Auth::user()->favorites->pluck('book_id')->toArray(); ?>
+                        @foreach($books as $book)
+                            @if($book->book_id >= 14 && $book->book_id <= 18)
+                                <?php
+                                    $maxWords = 2;
+                                    $bookNameArray = explode(' ', $book->book_name);
+                                    $bookNameShortened = implode(' ', array_slice($bookNameArray, 0, $maxWords));
+                                    if (count($bookNameArray) > $maxWords) {
+                                        $bookNameShortened .= '...';
+                                    }
+                                ?>
+                                <div class="book-card-fav" style="z-index: 999" onclick="showBookDetails({{ json_encode($book) }})">
+                                    <img src="{{ asset('fotobuku/' . $book->book_cover) }}" alt="{{ $book->book_name }}" style=" width:110px; height:150px;">
+                                    <button style="height: 30px" class="favorite-btn" onclick='toggleFavorite({{ $book->book_id }}, event)'>
+                                        <i style="font-size: 1.2rem; margin-top:2px;" class="{{ in_array($book->book_id, $favorites) ? 'fas' : 'far' }} fa-heart" id="heart-icon-{{ $book->book_id }}"></i>
+                                    </button>
+                                    <button class="rating-btn">
+                                        <i class="fas fa-star"></i>
+                                        <p style="color: white; font-size:14px">{{ $book->average_rating }}/5</p>
+                                    </button>
+                                    <div class="card-body" style="display: none">
+                                        <h5 class="card-title">{{ $bookNameShortened }}</h5>
+                                        <p class="card-text">{{ $book->writer }}</p>
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
                 </div>
             </div>
             <aside>
@@ -330,6 +571,10 @@
         <form action="{{ route('borrow.book') }}" method="POST">
             @csrf
             <div>
+                <p id="modal-book-quantities"></p>
+                <p id="out-of-stock" style="display: none; color: red;">Out of Stock</p>
+            </div>
+            <div id="day_rent_input">
                 <label for="day_rent">Day Rent:</label>
                 <input type="date" id="day_rent" name="day_rent" required>
             </div>
@@ -342,10 +587,9 @@
                 <input type="hidden" id="modal-book-id" name="book">
                 <p id="modal-book-name"></p>
             </div>
-            <button type="submit">Continue</button>
+            <button id="borrow-button" type="submit">Continue</button>
         </form>
     </div>
 </div>
-
 </body>
 </html>

@@ -13,17 +13,37 @@
     <script>
         // Function to handle approval of borrowing requests
         function approveBorrowing(borrowingId) {
-            fetch(`/borrow/approve/${borrowingId}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-            })
-            .then(response => handleResponse(response, 'Approved!', 'The borrowing request has been approved.'))
-            .then(() => {
-                location.reload(); // Refresh the page
-            });
-        }
+        Swal.fire({
+            title: 'Approve Borrow Request',
+            html: '<label for="day_return">Return Date:</label>' +
+                  '<input type="date" id="day_return" class="swal2-input">',
+            preConfirm: () => {
+                const dayReturn = Swal.getPopup().querySelector('#day_return').value;
+                if (!dayReturn) {
+                    Swal.showValidationMessage('You need to provide a return date');
+                }
+                return { dayReturn: dayReturn };
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Approve',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/borrow/approve/${borrowingId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: JSON.stringify({ day_return: result.value.dayReturn }),
+                })
+                .then(response => handleResponse(response, 'Approved!', 'The borrowing request has been approved.'))
+                .then(() => {
+                    location.reload(); // Refresh the page
+                });
+            }
+        });
+    }
 
         // Function to handle returning borrowed books
         function returnBorrowing(borrowingId) {
@@ -235,9 +255,9 @@
         <h2>TB Library</h2>
         <ul>
             <li><a href="{{ route('home.crew') }}"><i class="fas fa-home"></i>Discover</a></li>
-            <li><a style="color: white; font-weight:600" href="#"><i class="fas fa-list"></i>Book List</a></li>
-            <li><a href="{{ route('add.crew') }}"><i class="fas fa-book"></i>Add Book</a></li>
-            <li><a href="{{ route('data.crew') }}"><i class="fas fa-database"></i>Customer Data</a></li>
+            <li><a style="color: white; font-weight:600" href="#"><i class="fas fa-list"></i>Waiting List</a></li>
+            <li><a href="{{ route('add.crew') }}"><i class="fas fa-book"></i>Book Data</a></li>
+            <li><a href="{{ route('data.crew') }}"><i class="fas fa-database"></i>History</a></li>
         </ul>
         <hr style="border-color: #27374D">
         <ul style="margin-bottom: 173px">
@@ -255,8 +275,29 @@
         <div class="header">
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input style="width: 250px" type="text" class="search-bar" placeholder="Search borrowings">
+                <input id="search-bar" style="width: 250px" type="text" class="search-bar" placeholder="Search borrowings">
             </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const searchBar = document.getElementById('search-bar');
+                    searchBar.addEventListener('input', searchBooks);
+                });
+
+                function searchBooks() {
+                    const query = document.getElementById('search-bar').value.toLowerCase();
+                    const bookCards = document.querySelectorAll('.card1');
+
+                    bookCards.forEach(card => {
+                        const title = card.querySelector('.card1 p').nextSibling.textContent.toLowerCase();
+
+                        if (title.includes(query)) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                }
+            </script>
             <div class="dropdown">
                 <button class="dropbtn">
                     <div style="display: flex">
@@ -290,36 +331,36 @@
                         <div class="card {{ $borrowing->status == 'returned' || $borrowing->status == 'rejected' ? 'returned-card' : '' }}">
                             <div class="image-card">
                                 @if ($borrowing->user->picture)
-                                    <img src="{{ asset($borrowing->user->picture) }}" alt="Profile Picture" style="width: 70px; height: 70px; border-radius: 50%; ">
+                                    <img src="{{ asset($borrowing->user->picture) }}" alt="Profile Picture" style="width: 70px; height: 70px; border-radius: 50%;">
                                 @else
-                                    <img src="{{ asset('assets/user.png') }}" alt="Default Profile Picture" style="width: 70px; height: 70px; border-radius: 50%; object                                -fit: cover;">
-                                    @endif
+                                    <img src="{{ asset('assets/user.png') }}" alt="Default Profile Picture" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover;">
+                                @endif
+                            </div>
+                            <div style="display: flex; justify-content: space-between; width: 950px; margin-left: 15px;">
+                                <div style="margin-left: 20px;" class="card-body">
+                                    <p>{{ $borrowing->book->book_name ?? 'Book not found' }}</p>
+                                    <p>User: {{ $borrowing->user->name ?? 'User not found' }}</p>
+                                    <p>Day Rent: {{ $borrowing->day_rent }}</p>
+                                    <p>Status: {{ $borrowing->status }}</p>
                                 </div>
-                                <div style="display: flex; justify-content:space-between; width:950px; margin-left:15px;">
-                                    <div style="margin-left: 20px;" class="card-body">
-                                        <p>{{ $borrowing->book->book_name ?? 'Book not found' }}</p>
-                                        <p>User: {{ $borrowing->user->name ?? 'User not found' }}</p>
-                                        <p>Day Rent: {{ $borrowing->day_rent }}</p>
-                                        <p>Status: {{ $borrowing->status }}</p>
-                                    </div>
-                                    <div class="card-actions">
-                                        @if ($borrowing->status == 'pending')
+                                <div class="card-actions">
+                                    @if ($borrowing->status == 'pending')
                                         <button style="display: inline;" class="btn-approved" onclick="approveBorrowing({{ $borrowing->id }})"><i class="fas fa-check fa-2x"></i></button>
                                         <form style="display: inline;" onsubmit="handleAction(event, {{ $borrowing->id }}, 'reject')">
                                             @csrf
                                             <button class="btn-rejected" type="submit"><i class="fas fa-times fa-2x"></i></button>
                                         </form>
-                                        @elseif ($borrowing->status == 'borrowed')
-                                            <button class="btn-return" onclick="openModal({{ $borrowing->id }})">Return</button>
-                                        @else
+                                    @elseif ($borrowing->status == 'borrowed')
+                                        <button class="btn-return" onclick="openModal({{ $borrowing->id }})">Return</button>
+                                    @else
                                         <button disabled>N/A</button>
                                     @endif
                                 </div>
-                                </div>
                             </div>
                         </div>
-                    @endforeach
-                </div>
+                    </div>
+                @endforeach
+            </div>
             </div>
         </div>
     </div>
@@ -444,7 +485,7 @@
             gap: 10px;
         }
 
-        .btn-approved, .btn-rejected {
+        .btn-approved, .btn-rejected, .btn-return {
             border: none;
             width: 70px;
             height: 70px;
@@ -462,6 +503,19 @@
 
         .btn-approved:hover {
             background-color: #0b8500;
+        }
+
+        .btn-return {
+            background-color: #c7c400;
+            color: black;
+            font-weight: 600;
+            font-size: 18px;
+            height: 50px;
+            width: 140px;
+        }
+
+        .btn-return:hover {
+            background-color: #999600;
         }
 
         .btn-rejected {

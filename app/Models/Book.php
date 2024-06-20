@@ -19,6 +19,7 @@ class Book extends Model
         'publisher',
         'year',
         'synopsis',
+        'book_quantities',
         'rent_price',
     ];
 

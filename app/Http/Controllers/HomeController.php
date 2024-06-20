@@ -41,6 +41,11 @@ class HomeController extends Controller
         return view('user.user-download');
     }
 
+    public function userSee()
+    {
+        return view('user.all');
+    }
+
     public function adminHome()
     {
         return view('admin.admin-dashboard',["msg"=>"I am admin role"]);

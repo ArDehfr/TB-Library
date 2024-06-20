@@ -36,6 +36,30 @@
             });
         }
     </script>
+
+<script>
+    function searchTable() {
+            const query = document.getElementById('search-bar').value.toLowerCase();
+            const rows = document.querySelectorAll('table tbody tr');
+
+            rows.forEach(row => {
+                const cells = row.getElementsByTagName('td');
+                let match = false;
+                for (let i = 0; i < cells.length; i++) {
+                    if (cells[i].textContent.toLowerCase().includes(query)) {
+                        match = true;
+                        break;
+                    }
+                }
+                row.style.display = match ? '' : 'none';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('search-bar').addEventListener('input', searchTable);
+        });
+</script>
+
 </head>
 <body>
 <div class="wrapper">
@@ -45,7 +69,7 @@
             <li><a href="{{ route('home') }}"><i class="fas fa-home"></i>Discover</a></li>
             <li><a href="{{ route('home.fav') }}"><i class="fas fa-heart"></i>Favourite</a></li>
             <li><a href="{{ route('home.lib') }}"><i class="fas fa-money-bill-wave"></i>Payment</a></li>
-            <li><a style="color: white; font-weight:600" href="#"><i class="fas fa-bell"></i>Approval</a></li>
+            <li><a style="color: white; font-weight:600" href="#"><i class="fas fa-bell"></i>Notifications</a></li>
         </ul>
         <hr style="border-color: #27374D">
         <ul style="margin-bottom: 173px">
@@ -63,7 +87,7 @@
         <div class="header">
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input style="width: 250px" type="text" class="search-bar" placeholder="Search your favourite books">
+                <input id="search-bar" style="width: 250px" type="text" class="search-bar" placeholder="Search your favourite books">
             </div>
             <div class="dropdown">
                 <button class="dropbtn">
@@ -125,6 +149,7 @@
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    color: white;
 }
 
 table, th, td {

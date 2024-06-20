@@ -62,11 +62,22 @@ class BorrowingController extends Controller
 
     public function approve(Request $request, $id)
     {
+        $request->validate([
+            'day_return' => 'required|date',
+        ]);
+
         $borrowing = Borrowing::findOrFail($id);
-        $borrowing->update(['status' => 'borrowed']);
+        $borrowing->update([
+            'status' => 'borrowed',
+            'day_return' => $request->day_return,
+        ]);
+
+        $book = Book::findOrFail($borrowing->book_id);
+        $book->decrement('book_quantities');
 
         return response()->json(['status' => 'borrowed']);
     }
+
 
     public function return(Request $request, $id)
     {
@@ -104,6 +115,9 @@ class BorrowingController extends Controller
                 break;
             case 'lost':
                 $paymentAmount = $rentPrice * 10;
+                break;
+            case 'good':
+                $paymentAmount = $rentPrice * 1;
                 break;
             default:
                 $paymentAmount = $rentPrice;

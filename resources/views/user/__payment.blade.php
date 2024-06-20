@@ -1,5 +1,6 @@
 <!-- Native Modal -->
 <div id="paymentGatewayModal" class="modal">
+    {{-- <i class="fas fa-times fa-2x" onclick="closePaymentGateway()" style="cursor: pointer; margin-left: 20px; margin-top: 20px"></i> --}}
     <div class="modal-content">
         <div class="container">
             <div class="row">
@@ -361,8 +362,15 @@
     }
 
     function closePaymentGateway() {
-        document.getElementById('paymentGatewayModal').style.display = 'none';
-    }
+            const modal = document.getElementById('paymentGatewayModal');
+            modal.style.display = 'none';
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closePaymentGateway();
+            }
+        });
 
     document.getElementById('confirmPaymentButton').addEventListener('click', function() {
         // Add your payment confirmation logic here

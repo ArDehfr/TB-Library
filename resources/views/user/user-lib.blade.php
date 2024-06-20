@@ -41,10 +41,28 @@
             });
         }
 
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchBar = document.getElementById('search-bar');
+            searchBar.addEventListener('input', searchBooks);
+        });
+
+        function searchBooks() {
+            const query = document.getElementById('search-bar').value.toLowerCase();
+            const bookCards = document.querySelectorAll('.card-pay');
+
+            bookCards.forEach(card => {
+                const title = card.querySelector('.card-body-pay p strong').nextSibling.textContent.toLowerCase();
+
+                if (title.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
     </script>
 </head>
 <body>
-
 <div class="wrapper">
     <div class="sidebar">
         <h2>TB Library</h2>
@@ -52,7 +70,7 @@
             <li><a href="{{ route('home') }}"><i class="fas fa-home"></i>Discover</a></li>
             <li><a href="{{ route('home.fav') }}"><i class="fas fa-heart"></i>Favourite</a></li>
             <li><a style="color: white; font-weight:600" href=""><i class="fas fa-money-bill-wave"></i>Payment</a></li>
-            <li><a href="{{ route('home.download') }}"><i class="fas fa-bell"></i>Approval</a></li>
+            <li><a href="{{ route('home.download') }}"><i class="fas fa-bell"></i>Notifications</a></li>
         </ul>
         <hr style="border-color: #27374D">
         <ul style="margin-bottom: 173px">
@@ -70,7 +88,7 @@
         <div class="header">
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input style="width: 250px" type="text" class="search-bar" placeholder="Search your favourite books">
+                <input id="search-bar" style="width: 250px" type="text" class="search-bar" placeholder="Search your favourite books">
             </div>
             <div class="dropdown">
                 <button class="dropbtn">
@@ -98,16 +116,24 @@
             </div>
         </div>
 
-        <?php $payments = App\Models\Payment::where('user_id', auth()->id())->get() ?>
-        @foreach($payments as $payment)
-            <div class="{{ $payment->payment_status == '1' ? 'none' : '' }}">
-                <h3>Payment ID: {{ $payment->id }}</h3>
-                <p>Book Title: {{ $payment->borrowing->book->book_name }}</p>
-                <p>User: {{ $payment->borrowing->user->name }}</p>
-                <p>Amount: Rp {{ number_format($payment->amount, 0, ',', '.') }}</p>
-                <button onclick="openPaymentGateway({{ $payment->id }})">Pay</button>
-            </div>
-        @endforeach
+        <div class="payments">
+            <?php $payments = App\Models\Payment::where('user_id', auth()->id())->get() ?>
+            @foreach($payments as $payment)
+                <div class="card-pay {{ $payment->payment_status == '1' ? 'none' : '' }}">
+                    <div class="card-header-pay">
+                        <h3>Payment ID: {{ $payment->id }}</h3>
+                    </div>
+                    <div class="card-body-pay">
+                        <p><strong>Book Title:</strong> {{ $payment->borrowing->book->book_name }}</p>
+                        <p><strong>User:</strong> {{ $payment->borrowing->user->name }}</p>
+                        <p><strong>Amount:</strong> Rp {{ number_format($payment->amount, 0, ',', '.') }}</p>
+                    </div>
+                    <div class="card-footer-pay {{ $payment->payment_status == '1' ? 'pay-off-button' : '' }}">
+                        <button class="" onclick="openPaymentGateway({{ $payment->id }})">{{ $payment->payment_status == '1' ? 'Pay Off' : 'Pay' }}</button>
+                    </div>
+                </div>
+            @endforeach
+        </div>
 
         @include('user.__payment')
 
@@ -167,76 +193,140 @@
                     }
                 }
             });
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    closePaymentGateway();
+                }
+            });
         </script>
     </div>
 </div>
 <style>
-        .none{
-            display: none;
-        }
+    .none {
+        display: none;
+    }
 
-        .content1 {
-            background-color: #192a3a;
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 800px;
-            right: 50%;
-            transform: translateX(20%);
-            margin-top: 50px;
-        }
+    .card-pay {
+        background-color: #192a3a;
+        padding: 20px;
+        border-radius: 10px;
+        width: 90%;
+        margin: 20px auto;
+        color: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
 
-        .content1 h2 {
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: white;
-        }
+    .card-header-pay {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
 
-        .content1 p {
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: #9a9a9a;
-        }
+    .card-body-pay {
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
 
-        .content1 form {
-            display: flex;
-            flex-direction: column;
-        }
+    .card-footer-pay {
+        display: flex;
+        justify-content: flex-end;
+    }
 
-        .content1 form div {
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
-        }
+    .card-footer-pay button {
+        background-color: #FFB319;
+        color: #192a3a;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+    }
 
-        .content1 form label {
-            font-size: 14px;
-            margin-bottom: 5px;
-            color: rgba(255, 255, 255, 0.710);
-        }
+    .card-footer-pay button:hover {
+        background-color: #e0a00e;
+    }
 
-        .content1 form input, .content1 form select {
-            padding: 10px;
-            border: 1px solid #9a9a9a;
-            border-radius: 5px;
-            background-color: #27374D;
-            color: rgb(255, 255, 255);
-        }
+    .pay-off-button button {
+        background-color: #4CAF50;
+        color: white;
+        z-index: 9999;
+        cursor: not-allowed;
+    }
 
-        .content1 form button {
-            background-color: #FFB319;
-            color: #192a3a;
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-        }
+    .pay-off-button button:hover {
+        background-color: #45a049;
+    }
 
-        .content1 form button:hover {
-            background-color: #e0a00e;
-        }
+    .payments {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
 
+    .content1 {
+        background-color: #192a3a;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 800px;
+        right: 50%;
+        transform: translateX(20%);
+        margin-top: 50px;
+    }
+
+    .content1 h2 {
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: white;
+    }
+
+    .content1 p {
+        margin-bottom: 20px;
+        font-size: 14px;
+        color: #9a9a9a;
+    }
+
+    .content1 form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .content1 form div {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .content1 form label {
+        font-size: 14px;
+        margin-bottom: 5px;
+        color: rgba(255, 255, 255, 0.710);
+    }
+
+    .content1 form input, .content1 form select {
+        padding: 10px;
+        border: 1px solid #9a9a9a;
+        border-radius: 5px;
+        background-color: #27374D;
+        color: rgb(255, 255, 255);
+    }
+
+    .content1 form button {
+        background-color: #FFB319;
+        color: #192a3a;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .content1 form button:hover {
+        background-color: #e0a00e;
+    }
 </style>
 </body>
 </html>

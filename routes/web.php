@@ -52,6 +52,7 @@ Auth::routes();
 Route::middleware(['auth','user-role:user'])->group(function()
 {
     Route::get("/home",[HomeController::class, 'userHome'])->name('home');
+    Route::get("/home/all",[HomeController::class, 'userSee'])->name('home.see');
 });
 Route::middleware(['auth','user-role:user'])->group(function()
 {
@@ -121,6 +122,7 @@ Route::get('/read/{book}', [BookController::class, 'read'])->name('read.book');
 // payment routes
 Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index')->middleware('auth');
 Route::post('/payments/{payment}/pay', [PaymentController::class, 'pay']);
+Route::get('/payments/{paymentId}/show', [PaymentController::class, 'showPaymentPage'])->name('payments.show');
 
 //favorite routes
 Route::post('/favorite/{book}', [FavoriteController::class, 'store'])->name('favorite.store');
@@ -130,3 +132,7 @@ Route::delete('/favorite/{book}', [FavoriteController::class, 'destroy'])->name(
 //Review routes
 Route::get('/books/{bookId}/review', [ReviewController::class, 'showReviewForm'])->name('review.form');
 Route::post('/books/{bookId}/review', [ReviewController::class, 'submitReview'])->name('review.submit');
+
+//search
+
+Route::get('/search', [BookController::class, 'search'])->name('search');

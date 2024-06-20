@@ -245,9 +245,9 @@
             <h2>TB Library</h2>
             <ul>
                 <li><a href="{{ route('home.crew') }}"><i class="fas fa-home"></i>Discover</a></li>
-                <li><a href="{{ route('list.crew') }}"><i class="fas fa-list"></i>Book List</a></li>
-                <li><a style="color: white; font-weight:600" href="#"><i class="fas fa-book"></i>Add Book</a></li>
-                <li><a href="{{ route('data.crew') }}"><i class="fas fa-database"></i>Customer Data</a></li>
+                <li><a href="{{ route('list.crew') }}"><i class="fas fa-list"></i>Waiting List</a></li>
+                <li><a style="color: white; font-weight:600" href="#"><i class="fas fa-book"></i>Book Data</a></li>
+                <li><a href="{{ route('data.crew') }}"><i class="fas fa-database"></i>History</a></li>
             </ul>
             <hr style="border-color: #27374D">
             <ul style="margin-bottom: 173px">
